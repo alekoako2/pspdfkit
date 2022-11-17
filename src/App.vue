@@ -66,4 +66,5 @@ input[type="file"] {
   font-size: 16px;
   font-weight: bold;
 }
+
 </style>

@@ -1,34 +1,45 @@
 <template>
   <div>
-    <a v-show="!annotation.active" href="#" style="display: block" @click="annotation_clicked_handler(annotation)">
-      <div style=";display: flex;justify-content: space-between">
-        <span>{{ annotation.label }}</span>
-        <span>></span>
-      </div>
-    </a>
-
-    <!--        inner body-->
-    <div v-if="annotation.active">
+    <template v-if="annotation.initial">
       <span>Add annotation</span> <br>
-      <label for="label-input">
-        Label <br>
-        <input id="label-input" :value="annotation.label" type="text" ref="annotationLabelInput">
-      </label>
-      <p>
-        {{ annotation.text }} <a href="#">more</a>
-      </p>
-      <a href="#" @click="edit_annotation_handler(annotation)">
-        Edit Highlight
-      </a>
-      <hr>
-      <div style="display: flex;justify-content: center;gap: 16px">
-        <a href="#" @click="annotation_add_cancelled_handler(annotation)">
+    </template>
+    <label for="label-select">
+      Label <br>
+      <select
+          name=""
+          id="label-select"
+          :value="annotation.label.id"
+          @change="label_change_handler"
+      >
+        <option v-for="{id,title} in labels" :value="id" :key="id">
+          {{ title }}
+        </option>
+      </select>
+    </label>
+    <p>
+      {{ annotation.text }} <a href="#">more</a>
+    </p>
+    <a href="#" @click="annotation_edit_highlight_click_handler()">
+      Edit Highlight
+    </a>
+    <hr>
+    <div style="display: flex;justify-content: center;gap: 16px">
+      <template v-if="annotation.initial">
+        <a href="#" @click="annotation_cancel_click_handler()">
           Cancel
         </a>
-        <a href="#" @click="add_annotation_handler(annotation)">
+        <a href="#" @click="annotation_add_edit_click_handler()">
           Add
         </a>
-      </div>
+      </template>
+      <template v-else>
+        <a href="#" @click="annotation_remove_click_handler()">
+          Remove
+        </a>
+        <a href="#" @click="annotation_add_edit_click_handler()">
+          Edit Tag
+        </a>
+      </template>
     </div>
   </div>
 </template>
@@ -37,24 +48,43 @@
 export default {
   name: "Annotation",
   props: {
-    annotation: Object
+    annotation: Object,
+    labels: Array
+  },
+  data: function () {
+    return {
+      selectedLabel: this.annotation.label
+    }
   },
   methods: {
-    annotation_add_cancelled_handler: function (annotation) {
-      if (annotation.initial) {
-        this.$emit('delete-annotation', annotation.id)
+    annotation_edit_highlight_click_handler: function () {
+      this.edit_highlight();
+    },
+    annotation_cancel_click_handler: function () {
+      if (this.annotation.initial) {
+        this.delete_annotation();
         return;
       }
-      annotation.active = false;
+
+      this.annotation.active = false;
     },
-    annotation_clicked_handler: function (annotation) {
-      annotation.active = true;
+    annotation_remove_click_handler: function () {
+      this.delete_annotation();
     },
-    edit_annotation_handler: function (annotation) {
-      this.$emit('enable-annotation-editor', annotation.id)
+    annotation_add_edit_click_handler: function () {
+      this.$emit('edit-annotation', {...this.annotation, label: this.selectedLabel, initial: false})
     },
-    add_annotation_handler: function (annotation) {
-      this.$emit('add-annotation', {...annotation, label: this.$refs.annotationLabelInput.value})
+
+    label_change_handler: function ($e) {
+      this.selectedLabel = this.labels.find(label => label.id === +$e.target.value)
+    },
+
+    // Helpers
+    edit_highlight: function () {
+      this.$emit('enable-annotation-editor', this.annotation.id)
+    },
+    delete_annotation: function () {
+      this.$emit('delete-annotation', this.annotation.id)
     }
   }
 }
