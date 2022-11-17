@@ -1,5 +1,6 @@
 <template>
   <div>
+    <Comment @send-message="send_message_handler"/>
     <!--    Tabs-->
     <div style="display: flex;justify-content: space-between">
       <button v-for="tab in tabs" :key="tab.name">{{ tab.name }}</button>
@@ -37,18 +38,21 @@
     <!--        @submit-clicked="submit_clicked_handler"-->
     <!--    />-->
 
-    <al-activity v-if="tabs.activity"/>
+    <al-activity v-if="tabs.activity" :comments="comments"/>
   </div>
 </template>
 
 <script>
 import AlActivity from "@/components/AlActivity";
+import Comment from "@/components/Comment";
 
 export default {
   name: "CustomSidebar",
-  components: {AlActivity},
+  components: {Comment, AlActivity},
   data: function () {
     return {
+      comments: [],
+
       tagType: {
         selected: true,
         value: 'term'
@@ -80,6 +84,10 @@ export default {
     labels: Array
   },
   methods: {
+    send_message_handler: function (obj) {
+      this.comments.push(obj)
+    },
+
     click_handler: function (tagType) {
       console.log(tagType)
 
